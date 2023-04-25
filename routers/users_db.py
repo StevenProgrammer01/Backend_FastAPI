@@ -8,7 +8,7 @@ pydantic: Librería para poder generar BaseModel, y crear objetos JSON a partir 
 
 '''
 from fastapi import APIRouter, HTTPException 
-from bd.models.user import User,User2
+from bd.models.user import User
 from bd.client import db_client
 from bd.schemas.user import user_schema, users_schema
 from bson import ObjectId
@@ -19,21 +19,21 @@ router = APIRouter(prefix = "/userdb",tags=["UsersDB"])
 #Lista de users, (simula base de datos)
 users_list = []
 
-@router.get("/", response_model=list)
+@router.get("/", response_model=list[User])
 async def users():
     return users_schema(db_client.users.find())
 
-@router.get("/{id}",response_model=User2)
+@router.get("/{id}",response_model=User)
 
 async def user(id:str):
     user = search_user("_id",ObjectId(id))
-    if type(user) == User2:
+    if type(user) == User:
         return user
     else:
         raise HTTPException(status_code=400, detail="That user is not exist")
 
 
-@router.post("/",status_code=201, response_model=User2) 
+@router.post("/",status_code=201, response_model=User) 
 async def add_user(user: User):
     if type(search_user("email",user.email))==User:
         raise HTTPException(404,"That user is already exists")
@@ -46,10 +46,10 @@ async def add_user(user: User):
 
     #User_schema es una función en la que podremos manipular los campos del registro que nos devuelve mongodb
     n_user = user_schema(db_client.users.find_one({"_id":id}))
-    return User2(**n_user)  
+    return User(**n_user)  
     
-@router.put("/",response_model=User2,status_code=202)
-async def update_user(user:User2):
+@router.put("/",response_model=User,status_code=202)
+async def update_user(user:User):
     user_dict = dict(user)
     del user_dict["id"]
     try:
@@ -70,7 +70,7 @@ async def delete_user(id:str):
 def search_user(key:str, value):
     try:
        user = user_schema(db_client.users.find_one({key:value}))
-       return User2(**user)
+       return User(**user)
     except:
         #raise HTTPException(status_code=404,detail="That user is not exist")
         return None
