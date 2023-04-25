@@ -19,7 +19,7 @@ router = APIRouter(prefix = "/userdb",tags=["UsersDB"])
 #Lista de users, (simula base de datos)
 users_list = []
 
-@router.get("/", response_model=list[User])
+@router.get("/", response_model=list)
 async def users():
     return users_schema(db_client.users.find())
 
